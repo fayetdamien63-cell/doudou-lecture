@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Page introuvable — Doudou Lecture{% endblock %}
+{% block content %}
+<section class="card empty">
+  <p class="empty-emoji" aria-hidden="true">🦊</p>
+  <h1>Oups, cette page n'existe pas !</h1>
+  <p>Le renard a dû l'emporter dans son terrier…</p>
+  <a class="btn btn-primary" href="{{ url_for('catalogue') }}">Retour au catalogue</a>
+</section>
+{% endblock %}

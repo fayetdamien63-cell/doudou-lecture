@@ -1,0 +1,70 @@
+{# Champs partagés entre l'ajout et la modification d'un livre. #}
+{% macro book_fields(tags, book=None) %}
+<div class="field">
+  <label for="f-title">Titre <b class="req" aria-hidden="true">*</b></label>
+  <input id="f-title" name="title" required value="{{ book.title if book }}" placeholder="Le loup qui voulait changer de couleur">
+</div>
+
+<div class="field-row">
+  <div class="field">
+    <label for="f-authors">Auteur·rice·s / illustrateur·rice</label>
+    <input id="f-authors" name="authors" value="{{ book.authors if book }}" placeholder="Orianne Lallemand">
+  </div>
+  <div class="field">
+    <label for="f-publisher">Éditeur</label>
+    <input id="f-publisher" name="publisher" value="{{ book.publisher if book }}" placeholder="Auzou">
+  </div>
+</div>
+
+<div class="field-row">
+  <div class="field small">
+    <label for="f-year">Année</label>
+    <input id="f-year" name="year" inputmode="numeric" maxlength="4" value="{{ book.year if book }}">
+  </div>
+  <div class="field small">
+    <label for="f-pages">Pages</label>
+    <input id="f-pages" name="page_count" inputmode="numeric" value="{{ book.page_count or '' if book }}">
+  </div>
+  <div class="field small">
+    <label for="f-agemin">Âge min</label>
+    <input id="f-agemin" name="age_min" inputmode="numeric" value="{{ book.age_min or '' if book }}" placeholder="2">
+  </div>
+  <div class="field small">
+    <label for="f-agemax">Âge max</label>
+    <input id="f-agemax" name="age_max" inputmode="numeric" value="{{ book.age_max or '' if book }}" placeholder="6">
+  </div>
+</div>
+
+<div class="field">
+  <label for="f-location">Rangement (bac, étagère, classe…)</label>
+  <input id="f-location" name="location" value="{{ book.location if book }}" placeholder="Bac bleu — coin lecture">
+</div>
+
+<div class="field">
+  <label for="f-summary">Résumé</label>
+  <textarea id="f-summary" name="summary" rows="4" placeholder="De quoi parle l'histoire ?">{{ book.summary if book }}</textarea>
+</div>
+
+<fieldset class="field tagpicker" id="tagpicker">
+  <legend>Thèmes, personnages et animaux</legend>
+  <p class="hint">Touchez les étiquettes pour les activer. Elles servent à la recherche.</p>
+  {% for kind, label, emoji in [('theme', 'Thèmes', '🌈'), ('personnage', 'Personnages', '🧚'), ('animal', 'Animaux', '🐾'), ('autre', 'Autres', '✨')] %}
+    {% set kind_tags = tags | selectattr('kind', 'equalto', kind) | list %}
+    {% if kind_tags or kind != 'autre' %}
+    <div class="tag-group" data-kind="{{ kind }}">
+      <h4>{{ emoji }} {{ label }}</h4>
+      <div class="chips tag-list">
+        {% for t in kind_tags %}
+        <button type="button" class="chip kind-{{ kind }} {{ 'on' if book and t.name in (book.tags | map(attribute='name') | list) }}"
+                data-name="{{ t.name }}" data-kind="{{ kind }}">{{ t.name }}</button>
+        {% endfor %}
+      </div>
+      <div class="new-tag">
+        <input type="text" placeholder="Nouveau… (ex : dinosaure)" aria-label="Ajouter un {{ label|lower }}" data-kind="{{ kind }}">
+        <button type="button" class="icon-btn add-tag" data-kind="{{ kind }}" aria-label="Ajouter">＋</button>
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+</fieldset>
+{% endmacro %}

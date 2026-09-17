@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Catalogue — Doudou Lecture{% endblock %}
+{% block content %}
+
+<section class="hero">
+  <h1 class="big-title">La bibliothèque de l'école 🌈</h1>
+  <ul class="stats" aria-label="Chiffres de la bibliothèque">
+    <li class="stat stat-books"><b>{{ stats.books }}</b><span>livre{{ 's' if stats.books > 1 }}</span></li>
+    <li class="stat stat-loans"><b>{{ stats.loaned }}</b><span>emprunté{{ 's' if stats.loaned > 1 }}</span></li>
+    <li class="stat stat-late"><b>{{ stats.late }}</b><span>en retard</span></li>
+    <li class="stat stat-tags"><b>{{ stats.tags }}</b><span>thèmes</span></li>
+  </ul>
+</section>
+
+<form class="search" method="get" action="{{ url_for('catalogue') }}" id="search-form" role="search">
+  <div class="search-row">
+    <span class="search-icon" aria-hidden="true">🔎</span>
+    <input type="search" name="q" id="q" value="{{ query }}" autocomplete="off"
+           placeholder="Titre, auteur, loup, ours, amitié…" aria-label="Rechercher un livre">
+    <button type="button" class="icon-btn" id="clear-q" aria-label="Effacer la recherche" hidden>✕</button>
+  </div>
+  <div class="filters">
+    <select name="statut" aria-label="Disponibilité">
+      <option value="">Tous les livres</option>
+      <option value="available" {{ 'selected' if status == 'available' }}>Disponibles</option>
+      <option value="loaned" {{ 'selected' if status == 'loaned' }}>Empruntés</option>
+      <option value="late" {{ 'selected' if status == 'late' }}>En retard</option>
+    </select>
+    <select name="tri" aria-label="Trier">
+      <option value="title" {{ 'selected' if sort == 'title' }}>Par titre</option>
+      <option value="author" {{ 'selected' if sort == 'author' }}>Par auteur</option>
+      <option value="recent" {{ 'selected' if sort == 'recent' }}>Derniers ajoutés</option>
+    </select>
+    <input type="hidden" name="tag" id="tag-input" value="{{ tag }}">
+    <noscript><button class="btn btn-primary" type="submit">Chercher</button></noscript>
+  </div>
+  {% if tags %}
+  <div class="chips" id="chips">
+    <button type="button" class="chip {{ 'on' if not tag }}" data-tag="">Tout</button>
+    {% for t in tags %}
+      <button type="button" class="chip kind-{{ t.kind }} {{ 'on' if tag == t.name }}"
+              data-tag="{{ t.name }}">{{ t.name }} <i>{{ t.count }}</i></button>
+    {% endfor %}
+  </div>
+  {% endif %}
+</form>
+
+<p class="result-count" id="count">{{ books|length }} livre{{ 's' if books|length > 1 }}</p>
+
+<div class="grid" id="grid">
+  {% for book in books %}
+  <a class="book-card" href="{{ url_for('book_page', book_id=book.id) }}">
+    <div class="cover" data-title="{{ book.title }}">
+      {% if book.cover %}
+        <img src="{{ url_for('cover', filename=book.cover) }}" alt="" loading="lazy">
+      {% else %}
+        <span class="cover-fallback" aria-hidden="true">📖</span>
+      {% endif %}
+      {% if book.loan %}
+        <span class="badge {{ 'badge-late' if book.loan.late else 'badge-out' }}">
+          {{ '⏰' if book.loan.late else '🎒' }} {{ book.loan.student }}</span>
+      {% endif %}
+    </div>
+    <h2>{{ book.title }}</h2>
+    <p class="authors">{{ book.authors or '—' }}</p>
+    {% if book.tags %}
+    <p class="card-tags">
+      {% for t in book.tags[:3] %}<span class="mini-chip kind-{{ t.kind }}">{{ t.name }}</span>{% endfor %}
+    </p>
+    {% endif %}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="empty card" id="empty" {{ 'hidden' if books }}>
+  <p class="empty-emoji" aria-hidden="true">🐛</p>
+  <h2>Aucun livre trouvé</h2>
+  <p>Essayez un autre mot, ou ajoutez un livre en scannant son code-barres.</p>
+  <a class="btn btn-primary" href="{{ url_for('add_page') }}">➕ Ajouter un livre</a>
+</div>
+
+<a class="fab" href="{{ url_for('add_page') }}" aria-label="Ajouter un livre">➕</a>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/catalogue.js') }}?v=1"></script>
+{% endblock %}

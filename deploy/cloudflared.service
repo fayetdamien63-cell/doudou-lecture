@@ -1,0 +1,18 @@
+# Service systemd pour le tunnel Cloudflare.
+# La commande « cloudflared service install » cree deja ce fichier ;
+# celui-ci sert de modele si vous preferez l'ecrire a la main.
+[Unit]
+Description=Cloudflare Tunnel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=root
+ExecStart=/usr/bin/cloudflared --no-autoupdate --config /etc/cloudflared/config.yml tunnel run
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,4 @@
+# Dépendances de Doudou Lecture (volontairement minimales : un Raspberry Pi 1B+
+# n'a que 512 Mo de mémoire). Le reste utilise la bibliothèque standard Python.
+Flask>=2.0
+gunicorn>=20.1
