@@ -4,8 +4,11 @@
 #   0 3 * * 0 /home/pi/doudou-lecture/deploy/sauvegarde.sh
 set -eu
 
-SOURCE="${DOUDOU_DATA:-/home/pi/doudou-lecture/data}"
-DESTINATION="${1:-/home/pi/sauvegardes}"
+# Par defaut : le dossier data/ situe a cote de ce script, quel que soit
+# l'utilisateur (pi, PythonAnywhere, autre).
+RACINE="$(cd "$(dirname "$0")/.." && pwd)"
+SOURCE="${DOUDOU_DATA:-$RACINE/data}"
+DESTINATION="${1:-$HOME/sauvegardes}"
 HORODATAGE="$(date +%Y-%m-%d)"
 
 mkdir -p "$DESTINATION"

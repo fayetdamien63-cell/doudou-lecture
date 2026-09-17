@@ -92,7 +92,12 @@ def get_db():
         )
         g.db.row_factory = sqlite3.Row
         g.db.execute("PRAGMA foreign_keys = ON")
-        g.db.execute("PRAGMA journal_mode = WAL")
+        try:
+            # WAL accélère les lectures pendant une écriture, mais n'est pas
+            # disponible sur certains systèmes de fichiers réseau (PythonAnywhere).
+            g.db.execute("PRAGMA journal_mode = WAL")
+        except sqlite3.DatabaseError:
+            pass
     return g.db
 
 

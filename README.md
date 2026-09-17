@@ -24,12 +24,13 @@ de mémoire, ce qui passe sur un Raspberry Pi 1B+.
 2. [Installation sur le Raspberry Pi](#2-installation-sur-le-raspberry-pi)
 3. [Démarrage automatique (systemd)](#3-démarrage-automatique-systemd)
 4. [Accès depuis l'extérieur avec Cloudflare Tunnel](#4-accès-depuis-lextérieur-avec-cloudflare-tunnel-étape-par-étape)
-5. [Protéger l'accès](#5-protéger-laccès)
-6. [Utilisation au quotidien](#6-utilisation-au-quotidien)
-7. [Sauvegardes](#7-sauvegardes)
-8. [Mise à jour](#8-mise-à-jour)
-9. [Dépannage](#9-dépannage)
-10. [Sous le capot](#10-sous-le-capot)
+5. [Variante : hébergement gratuit sur PythonAnywhere](#5-variante--hébergement-gratuit-sur-pythonanywhere)
+6. [Protéger l'accès](#6-protéger-laccès)
+7. [Utilisation au quotidien](#7-utilisation-au-quotidien)
+8. [Sauvegardes](#8-sauvegardes)
+9. [Mise à jour](#9-mise-à-jour)
+10. [Dépannage](#10-dépannage)
+11. [Sous le capot](#11-sous-le-capot)
 
 ---
 
@@ -272,7 +273,139 @@ L'application s'ouvre alors en plein écran, comme une vraie application.
 
 ---
 
-## 5. Protéger l'accès
+## 5. Variante : hébergement gratuit sur PythonAnywhere
+
+Pas de Raspberry Pi sous la main, ou envie d'un plan B si le Pi tombe en panne ?
+**PythonAnywhere** héberge gratuitement l'application, sans carte bancaire.
+
+**Ce qui marche sur le compte gratuit :** un espace disque conservé d'une fois sur
+l'autre (512 Mo, soit environ 1 000 livres avec leurs couvertures), l'adresse
+`https://votre-nom.pythonanywhere.com` en HTTPS — donc **le scan par la caméra
+fonctionne** —, et l'accès aux trois sources utilisées pour les fiches
+(`.googleapis.com`, `openlibrary.org`, `covers.openlibrary.org`), qui figurent sur
+la liste blanche des comptes gratuits.
+
+**Ce qu'il faut accepter :** un seul site, pas de nom de domaine personnalisé, un
+quota de calcul quotidien (sans conséquence pour un usage d'école), et un bouton
+« renouveler » à cliquer tous les 3 mois pour garder le compte actif.
+
+> 🔒 **À peser avant de choisir.** L'application enregistre des **prénoms
+> d'élèves**. Sur le Raspberry Pi, ces données restent physiquement dans l'école ;
+> sur PythonAnywhere, elles sont confiées à un hébergeur tiers situé hors de
+> France. Pour un usage durable, l'auto-hébergement reste préférable ; le compte
+> gratuit est parfait pour **essayer l'application** ou **dépanner**.
+
+### Étape 5.1 — Créer le compte
+
+Inscrivez-vous sur <https://www.pythonanywhere.com/registration/register/beginner/>
+(formule « Beginner », gratuite). Notez bien votre **nom d'utilisateur** : il
+donnera l'adresse de votre site.
+
+### Étape 5.2 — Récupérer l'application
+
+Onglet **Consoles** → **Bash**, puis :
+
+```bash
+git clone https://github.com/fayetdamien63-cell/doudou-lecture.git
+cd doudou-lecture
+mkvirtualenv --python=/usr/bin/python3.13 doudou
+pip install Flask
+```
+
+`mkvirtualenv` crée l'environnement et l'active (le nom `doudou` apparaît alors au
+début de la ligne de commande). Si Python 3.13 n'existe pas sur votre compte,
+prenez la version la plus récente proposée par `ls /usr/bin/python3.*`.
+
+> `gunicorn` n'est pas nécessaire ici : PythonAnywhere lance lui-même
+> l'application, d'où l'installation de `Flask` seul.
+
+### Étape 5.3 — Créer le site web
+
+Onglet **Web** → **Add a new web app** → **Next** → choisissez **Manual
+configuration** (surtout pas « Flask », qui créerait un projet vide) → la même
+version de Python qu'à l'étape précédente → **Next**.
+
+### Étape 5.4 — Indiquer l'environnement virtuel
+
+Toujours dans l'onglet **Web**, section **Virtualenv**, saisissez :
+
+```
+doudou
+```
+
+Le chemin complet `/home/<votre-nom>/.virtualenvs/doudou` s'affiche alors
+automatiquement.
+
+### Étape 5.5 — Remplir le fichier WSGI
+
+Section **Code** de l'onglet **Web**, cliquez sur le lien
+**WSGI configuration file** (`/var/www/<votre-nom>_pythonanywhere_com_wsgi.py`).
+**Effacez tout** le contenu et remplacez-le par celui de
+[`deploy/pythonanywhere_wsgi.py`](deploy/pythonanywhere_wsgi.py), en adaptant :
+
+- `<votre-nom>` → votre nom d'utilisateur PythonAnywhere ;
+- `DOUDOU_PIN` → **votre** code d'accès (le site est public !).
+
+Les deux lignes `proxy.server:3128` sont indispensables sur un compte gratuit :
+c'est par ce relais que passent les recherches d'ISBN. Enregistrez (**Save**).
+
+### Étape 5.6 — Servir les images et les styles
+
+Toujours dans l'onglet **Web**, section **Static files**, ajoutez une entrée :
+
+| URL | Directory |
+|---|---|
+| `/static/` | `/home/<votre-nom>/doudou-lecture/app/static/` |
+
+Ce n'est pas obligatoire, mais le site sera nettement plus rapide.
+
+### Étape 5.7 — Démarrer
+
+Cliquez sur le gros bouton vert **Reload**, puis ouvrez
+`https://votre-nom.pythonanywhere.com`. Le code d'accès doit apparaître, puis le
+catalogue (vide au départ).
+
+Pour ajouter quelques livres de démonstration, dans une console Bash :
+
+```bash
+workon doudou
+cd ~/doudou-lecture
+DOUDOU_DATA=~/doudou-lecture/data python3 tools/donnees_exemple.py
+```
+
+### Étape 5.8 — Sauvegarde automatique (facultatif)
+
+Le compte gratuit autorise **une tâche quotidienne**. Onglet **Tasks**, ajoutez à
+l'heure de votre choix :
+
+```
+/home/<votre-nom>/doudou-lecture/deploy/sauvegarde.sh /home/<votre-nom>/sauvegardes
+```
+
+Les fichiers créés se téléchargent ensuite depuis l'onglet **Files**.
+
+### Mettre à jour plus tard
+
+```bash
+workon doudou
+cd ~/doudou-lecture && git pull && pip install -r requirements.txt
+```
+
+Puis **Reload** dans l'onglet **Web**. Le dossier `data/` n'est jamais touché :
+vos livres et vos prêts sont conservés.
+
+### Si quelque chose cloche
+
+| Symptôme | Cause la plus fréquente |
+|---|---|
+| Page « Something went wrong » | Regardez le **Error log** (onglet Web) : c'est presque toujours un `<votre-nom>` oublié dans le fichier WSGI. |
+| « Livre introuvable en ligne » pour **tous** les livres | Les lignes `proxy.server:3128` manquent dans le fichier WSGI, ou le compte est payant et elles doivent au contraire être retirées. |
+| Le site répond mais sans couleurs | L'entrée **Static files** de l'étape 5.6 est absente ou mal orthographiée (le `/` final compte). |
+| Le site s'est éteint tout seul | Compte gratuit non renouvelé : reconnectez-vous et cliquez sur le bouton de renouvellement affiché dans l'onglet Web. |
+
+---
+
+## 6. Protéger l'accès
 
 Un site en ligne est visible de tous : protégez-le, au choix (ou les deux).
 
@@ -288,7 +421,7 @@ reçoit un code à usage unique par mail pour se connecter.
 
 ---
 
-## 6. Utilisation au quotidien
+## 7. Utilisation au quotidien
 
 ### Ajouter un livre
 
@@ -325,7 +458,7 @@ conservé sur sa fiche.
 
 ---
 
-## 7. Sauvegardes
+## 8. Sauvegardes
 
 Toutes les données tiennent dans le dossier `data/` (base SQLite + couvertures).
 Le script fourni en fait une copie datée et ne garde que les 8 dernières :
@@ -346,7 +479,7 @@ nom `data/bibliotheque.db`, décompressez les couvertures, redémarrez.
 
 ---
 
-## 8. Mise à jour
+## 9. Mise à jour
 
 ```bash
 cd ~/doudou-lecture
@@ -360,7 +493,7 @@ versionné).
 
 ---
 
-## 9. Dépannage
+## 10. Dépannage
 
 | Problème | Solution |
 |---|---|
@@ -375,7 +508,7 @@ versionné).
 
 ---
 
-## 10. Sous le capot
+## 11. Sous le capot
 
 ```
 app/
@@ -384,7 +517,7 @@ app/
   metadata.py     recherche ISBN (Google Books, Open Library) et couvertures
   templates/      pages HTML (Jinja2)
   static/         CSS, JavaScript, icône
-deploy/           services systemd, modèle cloudflared, script de sauvegarde
+deploy/           services systemd, modèles cloudflared et PythonAnywhere, sauvegarde
 tools/            jeu de données d'exemple
 tests/            tests automatiques (sans accès réseau)
 data/             base de données et couvertures (créé au premier lancement)
