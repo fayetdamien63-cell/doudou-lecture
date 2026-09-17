@@ -2,7 +2,7 @@
 
 Sources utilisées, toutes libres et sans clé d'API :
   1. Google Books   (https://www.googleapis.com/books/v1/volumes)
-  2. Open Library   (https://openlibrary.org/api/books)
+  2. Open Library   (https://openlibrary.org/isbn/<isbn>.json)
   3. Couverture Open Library (https://covers.openlibrary.org)
 
 Uniquement la bibliothèque standard : pas de dépendance supplémentaire à
