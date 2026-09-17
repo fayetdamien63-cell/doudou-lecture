@@ -1,0 +1,15 @@
+# Modele de /etc/cloudflared/config.yml
+# Remplacez <ID-DU-TUNNEL> et le nom de domaine par les votres.
+
+tunnel: <ID-DU-TUNNEL>
+credentials-file: /etc/cloudflared/<ID-DU-TUNNEL>.json
+
+# Le Pi 1B+ est lent : on laisse un peu de marge sur les delais.
+originRequest:
+  connectTimeout: 30s
+  noTLSVerify: false
+
+ingress:
+  - hostname: bibliotheque.mondomaine.fr
+    service: http://127.0.0.1:8000
+  - service: http_status:404

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Connexion — Doudou Lecture{% endblock %}
+{% block content %}
+<section class="card login-card">
+  <h1 class="big-title">📚 Doudou Lecture</h1>
+  <p class="subtitle">La bibliothèque de l'école maternelle</p>
+  <form method="post" class="stack">
+    <input type="hidden" name="next" value="{{ next }}">
+    <label for="pin">Code d'accès</label>
+    <input id="pin" name="pin" type="password" inputmode="numeric" autocomplete="current-password"
+           required autofocus placeholder="••••">
+    <button class="btn btn-primary" type="submit">Entrer 🚪</button>
+  </form>
+</section>
+{% endblock %}

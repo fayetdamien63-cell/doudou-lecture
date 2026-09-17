@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Emprunts — Doudou Lecture{% endblock %}
+{% block content %}
+
+<h1 class="big-title">Les emprunts 🎒</h1>
+
+<ul class="stats">
+  <li class="stat stat-loans"><b>{{ stats.loaned }}</b><span>en cours</span></li>
+  <li class="stat stat-late"><b>{{ stats.late }}</b><span>en retard</span></li>
+  <li class="stat stat-books"><b>{{ stats.books - stats.loaned }}</b><span>disponibles</span></li>
+</ul>
+
+<div class="chips tabs">
+  <a class="chip {{ 'on' if status == 'open' }}" href="{{ url_for('loans_page', statut='open') }}">En cours</a>
+  <a class="chip {{ 'on' if status == 'closed' }}" href="{{ url_for('loans_page', statut='closed') }}">Rendus</a>
+  <a class="chip {{ 'on' if status == 'all' }}" href="{{ url_for('loans_page', statut='all') }}">Tout</a>
+</div>
+
+{% if loans %}
+<ul class="loan-list">
+  {% for loan in loans %}
+  <li class="loan {{ 'is-late' if loan.late }}">
+    <a class="loan-cover" href="{{ url_for('book_page', book_id=loan.book_id) }}">
+      {% if loan.cover %}<img src="{{ url_for('cover', filename=loan.cover) }}" alt="" loading="lazy">
+      {% else %}<span class="cover-fallback" aria-hidden="true">📖</span>{% endif %}
+    </a>
+    <div class="loan-body">
+      <a class="loan-title" href="{{ url_for('book_page', book_id=loan.book_id) }}">{{ loan.title }}</a>
+      <p class="loan-who"><b>{{ loan.student }}</b>{% if loan.classroom %} · {{ loan.classroom }}{% endif %}</p>
+      <p class="loan-dates">
+        Emprunté le {{ loan.loaned_on }}
+        {% if loan.returned_on %}· rendu le {{ loan.returned_on }} ✅
+        {% elif loan.due_on %}· à rendre le {{ loan.due_on }} {{ '⏰' if loan.late }}{% endif %}
+      </p>
+    </div>
+    {% if not loan.returned_on %}
+    <button class="btn btn-small btn-primary btn-return" data-loan-id="{{ loan.id }}">📥 Rendu</button>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="empty card">
+  <p class="empty-emoji" aria-hidden="true">🌻</p>
+  <h2>Aucun emprunt ici</h2>
+  <p>Ouvrez la fiche d'un livre pour le prêter à un élève.</p>
+  <a class="btn btn-primary" href="{{ url_for('catalogue') }}">Voir le catalogue</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/emprunts.js') }}?v=1"></script>
+{% endblock %}

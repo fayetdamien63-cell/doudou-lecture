@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{% block title %}Doudou Lecture{% endblock %}</title>
+<meta name="theme-color" content="#ffd166">
+<meta name="description" content="La bibliothèque de l'école maternelle">
+<link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='img/favicon.svg') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1">
+</head>
+<body>
+<a class="skip" href="#contenu">Aller au contenu</a>
+
+<header class="topbar">
+  <a class="brand" href="{{ url_for('catalogue') }}">
+    <span class="brand-emoji" aria-hidden="true">📚</span>
+    <span class="brand-text">Doudou<span>Lecture</span></span>
+  </a>
+  <nav class="topnav">
+    <a href="{{ url_for('catalogue') }}" class="{{ 'on' if request.endpoint == 'catalogue' }}">Catalogue</a>
+    <a href="{{ url_for('add_page') }}" class="{{ 'on' if request.endpoint == 'add_page' }}">Ajouter</a>
+    <a href="{{ url_for('loans_page') }}" class="{{ 'on' if request.endpoint == 'loans_page' }}">Emprunts</a>
+    {% if pin_enabled %}<a href="{{ url_for('logout') }}" title="Se déconnecter">Sortir</a>{% endif %}
+  </nav>
+</header>
+
+<main id="contenu" class="page">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <p class="flash flash-{{ category }}">{{ message }}</p>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+<nav class="tabbar" aria-label="Navigation principale">
+  <a href="{{ url_for('catalogue') }}" class="{{ 'on' if request.endpoint in ('catalogue', 'book_page') }}">
+    <span aria-hidden="true">🔎</span><span class="lbl">Catalogue</span></a>
+  <a href="{{ url_for('add_page') }}" class="scan-tab {{ 'on' if request.endpoint == 'add_page' }}">
+    <span aria-hidden="true">➕</span><span class="lbl">Ajouter</span></a>
+  <a href="{{ url_for('loans_page') }}" class="{{ 'on' if request.endpoint == 'loans_page' }}">
+    <span aria-hidden="true">🎒</span><span class="lbl">Emprunts</span></a>
+</nav>
+
+<div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=1"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

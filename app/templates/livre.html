@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% from "_form_fields.html" import book_fields %}
+{% block title %}{{ book.title }} — Doudou Lecture{% endblock %}
+{% block content %}
+
+<p class="breadcrumb"><a href="{{ url_for('catalogue') }}">← Retour au catalogue</a></p>
+
+<article class="card book-detail" data-book-id="{{ book.id }}">
+  <div class="detail-top">
+    <div class="cover big">
+      {% if book.cover %}
+        <img src="{{ url_for('cover', filename=book.cover) }}" alt="Couverture de {{ book.title }}">
+      {% else %}
+        <span class="cover-fallback" aria-hidden="true">📖</span>
+      {% endif %}
+    </div>
+    <div class="detail-info">
+      <h1>{{ book.title }}</h1>
+      <p class="authors">{{ book.authors or 'Auteur inconnu' }}</p>
+      <p class="meta">
+        {% if book.publisher %}<span>🏷️ {{ book.publisher }}</span>{% endif %}
+        {% if book.year %}<span>📅 {{ book.year }}</span>{% endif %}
+        {% if book.page_count %}<span>📄 {{ book.page_count }} pages</span>{% endif %}
+        {% if book.age_min or book.age_max %}
+          <span>🎂 {{ book.age_min or '?' }}–{{ book.age_max or '?' }} ans</span>{% endif %}
+        {% if book.location %}<span>📍 {{ book.location }}</span>{% endif %}
+        {% if book.isbn %}<span>🔢 {{ book.isbn }}</span>{% endif %}
+      </p>
+      {% if book.tags %}
+      <p class="chips">
+        {% for t in book.tags %}
+        <a class="chip kind-{{ t.kind }}" href="{{ url_for('catalogue', tag=t.name) }}">{{ t.name }}</a>
+        {% endfor %}
+      </p>
+      {% endif %}
+      {% if book.loan %}
+        <p class="status {{ 'late' if book.loan.late else 'out' }}">
+          {{ '⏰ En retard' if book.loan.late else '🎒 Emprunté' }} par
+          <b>{{ book.loan.student }}</b>{% if book.loan.classroom %} ({{ book.loan.classroom }}){% endif %}
+          depuis le {{ book.loan.loaned_on }}{% if book.loan.due_on %}, à rendre le {{ book.loan.due_on }}{% endif %}.
+        </p>
+      {% else %}
+        <p class="status in">✅ Disponible</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if book.summary %}<p class="summary">{{ book.summary }}</p>{% endif %}
+</article>
+
+<section class="card">
+  <h2>Le prêt 🎒</h2>
+  {% if book.loan %}
+    <button class="btn btn-primary" id="btn-return" data-loan-id="{{ book.loan.id }}">
+      📥 Le livre est rendu</button>
+  {% else %}
+    <form class="stack" id="loan-form">
+      <div class="field-row">
+        <div class="field">
+          <label for="student">Prénom de l'élève <b class="req" aria-hidden="true">*</b></label>
+          <input id="student" name="student" required autocomplete="off" list="students" placeholder="Camille">
+          <datalist id="students"></datalist>
+        </div>
+        <div class="field">
+          <label for="classroom">Classe</label>
+          <input id="classroom" name="classroom" autocomplete="off" placeholder="Grande section">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="loaned_on">Emprunté le</label>
+          <input id="loaned_on" name="loaned_on" type="date" value="{{ today }}">
+        </div>
+        <div class="field">
+          <label for="due_on">À rendre le</label>
+          <input id="due_on" name="due_on" type="date" value="{{ default_due }}">
+        </div>
+      </div>
+      <button class="btn btn-primary" type="submit">🎒 Prêter ce livre</button>
+    </form>
+  {% endif %}
+
+  {% if book.history %}
+  <details class="history">
+    <summary>Historique des prêts ({{ book.history|length }})</summary>
+    <ul class="history-list">
+      {% for loan in book.history %}
+      <li>
+        <b>{{ loan.student }}</b>{% if loan.classroom %} · {{ loan.classroom }}{% endif %} —
+        du {{ loan.loaned_on }}
+        {% if loan.returned_on %}au {{ loan.returned_on }} ✅{% else %}<i>(en cours)</i>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </details>
+  {% endif %}
+</section>
+
+<details class="card edit-card">
+  <summary><h2>Modifier la fiche ✏️</h2></summary>
+  <form id="book-form" novalidate>
+    <div class="cover-preview">
+      <img id="cover-img" alt="" {{ '' if book.cover else 'hidden' }}
+           {% if book.cover %}src="{{ url_for('cover', filename=book.cover) }}"{% endif %}>
+      <span id="cover-empty" class="cover-fallback" aria-hidden="true" {{ 'hidden' if book.cover }}>📖</span>
+      <div class="cover-tools">
+        <input id="cover-url" name="cover_url" placeholder="Nouvelle adresse d'image (https://…)"
+               aria-label="Adresse de la couverture" autocomplete="off">
+      </div>
+    </div>
+    <div class="field">
+      <label for="isbn">ISBN</label>
+      <input id="isbn" name="isbn" inputmode="numeric" value="{{ book.isbn or '' }}">
+    </div>
+    {{ book_fields(tags, book) }}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      <button type="button" class="btn btn-danger" id="btn-delete">🗑️ Supprimer le livre</button>
+    </div>
+  </form>
+</details>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/tagpicker.js') }}?v=1"></script>
+<script src="{{ url_for('static', filename='js/bookform.js') }}?v=1"></script>
+<script src="{{ url_for('static', filename='js/livre.js') }}?v=1"></script>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% from "_form_fields.html" import book_fields %}
+{% block title %}Ajouter un livre — Doudou Lecture{% endblock %}
+{% block content %}
+
+<h1 class="big-title">Ajouter un livre ➕</h1>
+
+<section class="card scan-card">
+  <h2>1. Le code-barres</h2>
+  <p class="hint">Scannez le code-barres au dos du livre, ou tapez l'ISBN à la main.</p>
+
+  <div class="scan-actions">
+    <button type="button" class="btn btn-scan" id="btn-scan">📷 Scanner</button>
+    <div class="isbn-row">
+      <input id="isbn" name="isbn" inputmode="numeric" autocomplete="off"
+             placeholder="978…" aria-label="ISBN">
+      <button type="button" class="btn btn-secondary" id="btn-lookup">Chercher</button>
+    </div>
+  </div>
+
+  <div id="scanner" class="scanner" hidden>
+    <video id="preview" playsinline muted></video>
+    <div class="scan-frame" aria-hidden="true"></div>
+    <button type="button" class="btn btn-ghost" id="btn-stop">Arrêter la caméra</button>
+    <p class="scan-hint" id="scan-hint">Approchez le code-barres du cadre…</p>
+  </div>
+
+  <details class="by-title">
+    <summary>Pas de code-barres ? Chercher par titre</summary>
+    <div class="isbn-row">
+      <input id="title-search" placeholder="Titre du livre" aria-label="Chercher par titre">
+      <button type="button" class="btn btn-secondary" id="btn-title-search">Chercher</button>
+    </div>
+    <div id="title-results" class="title-results"></div>
+  </details>
+</section>
+
+<form class="card" id="book-form" novalidate>
+  <h2>2. La fiche du livre</h2>
+  <div class="cover-preview">
+    <img id="cover-img" alt="" hidden>
+    <span id="cover-empty" class="cover-fallback" aria-hidden="true">📖</span>
+    <div class="cover-tools">
+      <input id="cover-url" name="cover_url" placeholder="Adresse de l'image de couverture (https://…)"
+             aria-label="Adresse de la couverture" autocomplete="off">
+      <p class="hint">Remplie automatiquement après le scan. L'image est copiée sur le Raspberry Pi.</p>
+    </div>
+  </div>
+
+  {{ book_fields(tags) }}
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary" id="btn-save">💾 Enregistrer le livre</button>
+    <button type="reset" class="btn btn-ghost" id="btn-reset">Vider le formulaire</button>
+  </div>
+  <p class="hint" id="save-hint">Après l'enregistrement, le formulaire se vide pour scanner le livre suivant.</p>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/tagpicker.js') }}?v=1"></script>
+<script src="{{ url_for('static', filename='js/bookform.js') }}?v=1"></script>
+<script src="{{ url_for('static', filename='js/scanner.js') }}?v=1"></script>
+<script src="{{ url_for('static', filename='js/ajouter.js') }}?v=1"></script>
+{% endblock %}

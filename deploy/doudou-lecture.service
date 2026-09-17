@@ -1,0 +1,27 @@
+# Service systemd : /etc/systemd/system/doudou-lecture.service
+[Unit]
+Description=Doudou Lecture - bibliotheque de l'ecole maternelle
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/doudou-lecture
+Environment="DOUDOU_DATA=/home/pi/doudou-lecture/data"
+# Code d'acces demande a l'ouverture du site (laisser vide pour desactiver).
+Environment="DOUDOU_PIN=1234"
+# Duree de pret proposee par defaut, en jours.
+Environment="DOUDOU_LOAN_DAYS=14"
+# 2 workers suffisent (1 seul sur un Pi 1B+), threads pour les appels reseau.
+ExecStart=/home/pi/doudou-lecture/.venv/bin/gunicorn \
+    --workers 2 --threads 4 --timeout 60 \
+    --bind 127.0.0.1:8000 app.app:app
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

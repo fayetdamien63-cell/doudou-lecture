@@ -1,0 +1,14 @@
+{
+  "name": "Doudou Lecture — bibliothèque de l'école",
+  "short_name": "Doudou Lecture",
+  "description": "La bibliothèque de l'école maternelle : catalogue, scan des codes-barres et prêts.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fffdf6",
+  "theme_color": "#ffd166",
+  "lang": "fr",
+  "icons": [
+    { "src": "/static/img/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
