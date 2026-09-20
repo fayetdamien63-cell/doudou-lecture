@@ -40,6 +40,7 @@
     if (now - lastScan < 2500) { return; }   // évite les lectures en rafale
     lastScan = now;
     window.barcodeScanner.beep();
+    window.bookForm.clearFiche();
     isbnInput.value = code;
     hint.textContent = "Code lu : " + code;
     lookup(code);
@@ -69,6 +70,9 @@
         setTimeout(function () { location.href = "/livre/" + error.data.existing_id; }, 1200);
         return;
       }
+      // Sans cela, la fiche du livre précédent resterait affichée et serait
+      // enregistrée une deuxième fois sous le code-barres qu'on vient de lire.
+      window.bookForm.clearFiche();
       window.toast(error.message + " — remplissez la fiche à la main", "err");
       if (error.data && error.data.isbn) { isbnInput.value = error.data.isbn; }
       document.getElementById("f-title").focus();
@@ -150,7 +154,7 @@
 
   form.addEventListener("reset", function (event) {
     event.preventDefault();
-    window.bookForm.reset();
+    window.bookForm.reset(true);
   });
 
   window.addEventListener("pagehide", function () { window.barcodeScanner.stop(); });

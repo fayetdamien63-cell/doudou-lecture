@@ -30,7 +30,24 @@
       };
     },
 
+    /* Champs décrivant le livre lui-même : ils doivent disparaître dès qu'on
+       passe à un autre livre, sans quoi la fiche précédente resterait en place
+       et serait enregistrée une seconde fois. Le rangement n'en fait pas
+       partie : on range en général toute une pile au même endroit. */
+    FICHE: ["f-title", "f-authors", "f-publisher", "f-year", "f-summary",
+            "f-pages", "f-agemin", "f-agemax", "cover-url"],
+
+    clearFiche: function () {
+      this.FICHE.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) { el.value = ""; }
+      });
+      if (window.tagPicker) { window.tagPicker.clear(); }
+      this.showCover("");
+    },
+
     fill: function (info) {
+      this.clearFiche();
       var map = {
         "f-title": info.title, "f-authors": info.authors, "f-publisher": info.publisher,
         "f-year": info.year, "f-summary": info.summary,
@@ -60,14 +77,16 @@
       }
     },
 
-    reset: function () {
-      ["isbn", "f-title", "f-authors", "f-publisher", "f-year", "f-summary",
-       "f-pages", "f-agemin", "f-agemax", "cover-url"].forEach(function (id) {
-        var el = document.getElementById(id);
-        if (el) { el.value = ""; }
-      });
-      if (window.tagPicker) { window.tagPicker.clear(); }
-      this.showCover("");
+    /* `tout` à vrai vide aussi le rangement (bouton « Vider le formulaire ») ;
+       après un enregistrement on le conserve pour enchaîner la pile de livres. */
+    reset: function (tout) {
+      this.clearFiche();
+      var el = document.getElementById("isbn");
+      if (el) { el.value = ""; }
+      if (tout) {
+        var lieu = document.getElementById("f-location");
+        if (lieu) { lieu.value = ""; }
+      }
     }
   };
 })();

@@ -3,26 +3,14 @@
 Lancement :  python3 -m unittest discover -s tests
 """
 
-import os
-import shutil
-import sys
-import tempfile
 import unittest
 from datetime import date, timedelta
 
-TMP = tempfile.mkdtemp(prefix="doudou-test-")
-os.environ["DOUDOU_DATA"] = TMP
-os.environ["DOUDOU_PIN"] = ""
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from tests import contexte  # noqa: F401  (prépare DOUDOU_DATA avant l'import)
 
 from app import app as module  # noqa: E402
 from app import db as store  # noqa: E402
 from app import metadata  # noqa: E402
-
-
-def tearDownModule():
-    shutil.rmtree(TMP, ignore_errors=True)
 
 
 class BaseCase(unittest.TestCase):

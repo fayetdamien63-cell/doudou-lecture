@@ -520,6 +520,7 @@ app/
 deploy/           services systemd, modèles cloudflared et PythonAnywhere, sauvegarde
 tools/            jeu de données d'exemple
 tests/            tests automatiques (sans accès réseau)
+                  + tests navigateur du formulaire d'ajout (Playwright, facultatif)
 data/             base de données et couvertures (créé au premier lancement)
 ```
 
@@ -550,6 +551,19 @@ data/             base de données et couvertures (créé au premier lancement)
 ### Tests
 
 ```bash
+python3 -m unittest discover -s tests
+```
+
+15 tests vérifient la recherche, les accents, les doublons d'ISBN, les prêts et
+l'API, sans aucun accès réseau.
+
+Trois tests supplémentaires pilotent un vrai navigateur pour vérifier le
+formulaire d'ajout (un deuxième scan ne doit jamais conserver la fiche du livre
+précédent). Ils sont ignorés automatiquement si Playwright est absent — inutile
+de l'installer sur le Raspberry Pi :
+
+```bash
+pip install playwright && playwright install chromium
 python3 -m unittest discover -s tests
 ```
 
